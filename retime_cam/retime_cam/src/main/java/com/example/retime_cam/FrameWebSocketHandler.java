@@ -7,8 +7,9 @@ import reactor.core.publisher.Sinks;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class FrameWebSocketHandler {
+public class FrameWebSocketHandler implements WebSocketHandler {
     private final ConcurrentHashMap<String, Sinks.Many<String>> clientSinks = new ConcurrentHashMap<>();
+
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
