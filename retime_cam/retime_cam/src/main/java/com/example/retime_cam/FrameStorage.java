@@ -6,19 +6,13 @@ import org.slf4j.LoggerFactory;
 
 @Component
 public class FrameStorage {
-    private static final Logger logger = LoggerFactory.getLogger(FrameStorage.class);
     private final ConcurrentHashMap<String, byte[]> frameMap = new ConcurrentHashMap<>();
 
     public void saveFrame(String userId, String deviceId, byte[] frame) {
-        String key = userId + ":" + deviceId;
-        frameMap.put(key, frame);
-        logger.info("Đã lưu frame cho key: {}, kích thước: {}", key, frame.length);
+        frameMap.put(userId + ":" + deviceId, frame);
     }
 
     public byte[] getFrame(String userId, String deviceId) {
-        String key = userId + ":" + deviceId;
-        byte[] frame = frameMap.get(key);
-        logger.info("Lấy frame cho key: {}, frame: {}", key, frame != null ? "có" : "null");
-        return frame;
+        return frameMap.get(userId + ":" + deviceId);
     }
 }
