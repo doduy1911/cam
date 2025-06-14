@@ -1,12 +1,12 @@
 package com.example.retime_cam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 import java.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api")
@@ -17,7 +17,7 @@ public class FrameController {
     @GetMapping(value = "/stream-frames/{userId}/{deviceId}", produces = MediaType.IMAGE_JPEG_VALUE)
     public Mono<byte[]> streamFrames(@PathVariable String userId, @PathVariable String deviceId) {
         return Mono.justOrEmpty(frameStorage.getFrame(userId, deviceId))
-                .switchIfEmpty(Mono.error(new RuntimeException()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No frame available")))
                 .delayElement(Duration.ofMillis(50));
     }
 

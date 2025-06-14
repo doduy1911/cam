@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 
@@ -30,35 +31,46 @@
             const userId = document.getElementById('userId').value;
             const deviceId = document.getElementById('deviceId').value;
             if (!userId || !deviceId) {
-                errorDiv.textContent = 'Please enter User ID and Device ID';
+                errorDiv.textContent = 'Vui lòng nhập User ID và Device ID';
                 return;
             }
             streaming = true;
+            errorDiv.textContent = ''; // Xóa lỗi cũ
             updateFrame(userId, deviceId);
         }
 
         function updateFrame(userId, deviceId) {
             if (!streaming) return;
-            fetch(`http://42.116.105.110:3000/api/stream-frames/${userId}/${deviceId}`, { cache: 'no-store' })
+            fetch(`http://42.116.105.110:3000/api/stream-frames/${userId}/${deviceId}`, {
+                cache: 'no-store',
+                headers: { 'Accept': 'image/jpeg' }
+            })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        if (response.status === 404) {
+                            errorDiv.textContent = 'Không có frame cho User ID hoặc Device ID này';
+                            setTimeout(() => updateFrame(userId, deviceId), 1000);
+                            return;
+                        }
+                        throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
                     }
                     if (!response.headers.get('content-type').includes('image/jpeg')) {
-                        throw new Error('Not a JPEG image');
+                        throw new Error('Không phải ảnh JPEG');
                     }
                     return response.blob();
                 })
                 .then(blob => {
-                    if (blob.size === 0) {
-                        throw new Error('Empty blob');
+                    if (!blob || blob.size === 0) {
+                        throw new Error('Blob rỗng');
                     }
                     img.src = URL.createObjectURL(blob);
                     errorDiv.textContent = '';
                     setTimeout(() => updateFrame(userId, deviceId), 33);
                 })
                 .catch(error => {
-                    errorDiv.textContent = 'Lỗi: ' + error.message;
+                    if (!errorDiv.textContent) { // Chỉ hiển thị lỗi một lần
+                        errorDiv.textContent = 'Lỗi: ' + error.message;
+                    }
                     setTimeout(() => updateFrame(userId, deviceId), 1000);
                 });
         }
@@ -66,3 +78,4 @@
 </body>
 
 </html>
+```
