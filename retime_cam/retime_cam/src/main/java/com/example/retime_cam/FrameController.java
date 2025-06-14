@@ -17,7 +17,7 @@ public class FrameController {
     @GetMapping(value = "/stream-frames/{userId}/{deviceId}", produces = MediaType.IMAGE_JPEG_VALUE)
     public Mono<byte[]> streamFrames(@PathVariable String userId, @PathVariable String deviceId) {
         return Mono.justOrEmpty(frameStorage.getFrame(userId, deviceId))
-                .switchIfEmpty(Mono.error(new RuntimeException("Không có frame")))
+                .switchIfEmpty(Mono.error(new RuntimeException()))
                 .delayElement(Duration.ofMillis(50));
     }
 
@@ -25,10 +25,9 @@ public class FrameController {
     public Mono<String> uploadFrame(@PathVariable String userId, @PathVariable String deviceId,
                                     @RequestPart("frame") MultipartFile frame) {
         return Mono.fromCallable(() -> {
-            byte[] frameBytes = frame.getBytes();
-            frameStorage.saveFrame(userId, deviceId, frameBytes);
-            return "Frame uploaded successfully";
-        }).onErrorResume(e -> Mono.just("Error uploading frame"));
+            frameStorage.saveFrame(userId, deviceId, frame.getBytes());
+            return "OK";
+        }).onErrorResume(e -> Mono.just("ERROR"));
     }
 }
 

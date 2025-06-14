@@ -15,21 +15,15 @@ try:
     while True:
         ret, frame = cap.read()
         if not ret:
-            print("Không thể đọc frame")
             break
         _, img_encoded = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
         files = {'frame': ('frame.jpg', img_encoded.tobytes(), 'image/jpeg')}
         try:
-            response = requests.post(upload_url, files=files)
-            print(f"Gửi frame, trạng thái: {response.status_code}, phản hồi: {response.text}")
-            if response.status_code != 200:
-                print(f"Lỗi gửi frame, thử lại sau 1 giây...")
-                time.sleep(1)
-        except Exception as e:
-            print(f"Lỗi kết nối: {e}, thử lại sau 1 giây...")
+            requests.post(upload_url, files=files)
+        except:
             time.sleep(1)
-        time.sleep(0.033)  # ~30 FPS
+        time.sleep(0.033)
 except KeyboardInterrupt:
-    print("Dừng stream...")
+    pass
 finally:
     cap.release()
