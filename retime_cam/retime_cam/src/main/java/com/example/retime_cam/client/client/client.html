@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Stream</title>
+    <style>
+        #video-stream { width: 640px; height: 480px; }
+        #error { color: red; }
+    </style>
+</head>
+<body>
+<input type="text" id="userId" placeholder="Enter User ID" value="1">
+<input type="text" id="deviceId" placeholder="Enter Device ID" value="1">
+<button onclick="startStream()">Start Stream</button>
+<img id="video-stream" alt="Live Stream">
+<div id="error"></div>
+<script>
+    const img = document.getElementById('video-stream');
+    const errorDiv = document.getElementById('error');
+    let streaming = false;
+
+    function startStream() {
+        const userId = document.getElementById('userId').value;
+        const deviceId = document.getElementById('deviceId').value;
+        if (!userId || !deviceId) {
+            errorDiv.textContent = 'Please enter User ID and Device ID';
+            return;
+        }
+        streaming = true;
+        updateFrame(userId, deviceId);
+    }
+
+    function updateFrame(userId, deviceId) {
+        if (!streaming) return;
+        fetch(`http://42.116.105.110:3000/api/stream-frames/${userId}/${deviceId}`, { cache: 'no-store' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                if (!response.headers.get('content-type').includes('image/jpeg')) {
+                    throw new Error('Not a JPEG image');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                if (blob.size === 0) {
+                    throw new Error('Empty blob');
+                }
+                img.src = URL.createObjectURL(blob);
+                errorDiv.textContent = '';
+                setTimeout(() => updateFrame(userId, deviceId), 33);
+            })
+            .catch(error => {
+                errorDiv.textContent = 'Lỗi: ' + error.message;
+                console.error('Lỗi:', error);
+                setTimeout(() => updateFrame(userId, deviceId), 1000);
+            });
+    }
+</script>
+</body>
+</html>
