@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html>
 
@@ -35,8 +34,12 @@
                 return;
             }
             streaming = true;
-            errorDiv.textContent = ''; // Xóa lỗi cũ
+            errorDiv.textContent = ''; // Clear any previous error
             updateFrame(userId, deviceId);
+        }
+
+        function stopStream() {
+            streaming = false;
         }
 
         function updateFrame(userId, deviceId) {
@@ -49,14 +52,16 @@
                     if (!response.ok) {
                         if (response.status === 404) {
                             errorDiv.textContent = 'Không có frame cho User ID hoặc Device ID này';
-                            setTimeout(() => updateFrame(userId, deviceId), 1000);
+                            stopStream(); // Stop streaming nếu không tìm thấy
                             return;
                         }
                         throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
                     }
-                    if (!response.headers.get('content-type').includes('image/jpeg')) {
+
+                    if (!response.headers.get('content-type')?.includes('image/jpeg')) {
                         throw new Error('Không phải ảnh JPEG');
                     }
+
                     return response.blob();
                 })
                 .then(blob => {
@@ -68,14 +73,11 @@
                     setTimeout(() => updateFrame(userId, deviceId), 33);
                 })
                 .catch(error => {
-                    if (!errorDiv.textContent) { // Chỉ hiển thị lỗi một lần
-                        errorDiv.textContent = 'Lỗi: ' + error.message;
-                    }
-                    setTimeout(() => updateFrame(userId, deviceId), 1000);
+                    errorDiv.textContent = 'Lỗi: ' + error.message;
+                    stopStream(); // Dừng nếu có lỗi
                 });
         }
     </script>
 </body>
 
 </html>
-```
