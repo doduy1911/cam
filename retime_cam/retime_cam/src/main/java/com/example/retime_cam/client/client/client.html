@@ -34,12 +34,8 @@
                 return;
             }
             streaming = true;
-            errorDiv.textContent = ''; // Clear any previous error
+            errorDiv.textContent = '';
             updateFrame(userId, deviceId);
-        }
-
-        function stopStream() {
-            streaming = false;
         }
 
         function updateFrame(userId, deviceId) {
@@ -52,16 +48,14 @@
                     if (!response.ok) {
                         if (response.status === 404) {
                             errorDiv.textContent = 'Không có frame cho User ID hoặc Device ID này';
-                            stopStream(); // Stop streaming nếu không tìm thấy
+                            setTimeout(() => updateFrame(userId, deviceId), 1000);
                             return;
                         }
                         throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
                     }
-
-                    if (!response.headers.get('content-type')?.includes('image/jpeg')) {
+                    if (!response.headers.get('content-type').includes('image/jpeg')) {
                         throw new Error('Không phải ảnh JPEG');
                     }
-
                     return response.blob();
                 })
                 .then(blob => {
@@ -73,8 +67,10 @@
                     setTimeout(() => updateFrame(userId, deviceId), 33);
                 })
                 .catch(error => {
-                    errorDiv.textContent = 'Lỗi: ' + error.message;
-                    stopStream(); // Dừng nếu có lỗi
+                    if (!errorDiv.textContent) {
+                        errorDiv.textContent = 'Lỗi: ' + error.message;
+                    }
+                    setTimeout(() => updateFrame(userId, deviceId), 1000);
                 });
         }
     </script>
